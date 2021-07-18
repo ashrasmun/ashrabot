@@ -5,7 +5,7 @@ from twitchio.ext import commands
 from details import config
 
 
-print('Reading configuration... ')
+print('Reading configuration...')
 config.load('config.json')
 
 bot = commands.Bot(
