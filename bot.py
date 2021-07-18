@@ -37,9 +37,10 @@ async def event_message(context):
     if context.author.name.lower() == config.bot_nick.lower():
         return
 
-    content = context.content.lower()
+    content       = context.content.lower()
+    split_content = content.split(' ')
 
-    if content.find('mus') != -1:
+    if 'mus' in split_content:
         global index
         paren = '' if index == 0 else f' ({index})'
         index = index + 1
