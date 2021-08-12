@@ -1,4 +1,3 @@
-import os
 import greeting
 
 from twitchio.ext import commands
@@ -7,23 +6,24 @@ from details import config, args
 
 index = 0
 
+
 def main():
     print('Reading configuration...')
     config.load(args.bot_config)
 
     bot = commands.Bot(
-        irc_token        = config.tmi_token,
-        client_id        = config.client_id,
-        nick             = config.bot_nick,
-        prefix           = config.bot_prefix,
-        initial_channels = config.channel,
+        irc_token=config.tmi_token,
+        client_id=config.client_id,
+        nick=config.bot_nick,
+        prefix=config.bot_prefix,
+        initial_channels=config.channel,
     )
 
     @bot.event
     async def event_ready():
         """Called once when the bot goes online."""
         print(f'{config.bot_nick} is online!')
-        ws = bot._ws # allow bot to send messages during this event
+        ws = bot._ws  # allow bot to send messages during this event
 
         message = f'/me is online, {greeting.get_a_bop()}'
         await ws.send_privmsg(config.channel[0], message)
@@ -38,7 +38,7 @@ def main():
         if context.author.name.lower() == config.bot_nick.lower():
             return
 
-        content       = context.content.lower()
+        content = context.content.lower()
         split_content = content.split(' ')
 
         if 'mus' in split_content:
@@ -73,14 +73,15 @@ def main():
         reason = ' '.join(args) if args else 'your lurking'
         await context.send(f'Enjoy {reason}, {context.author.name} peepoLove')
 
-    #TODO
+    # TODO
     # Add command to ban bots:
-    #Wanna become famous? Buy followers, primes and viewers on cutt.ly/xxxxxx ( bigfollows . com )!
+    # Wanna become famous? Buy followers, primes and viewers on cutt.ly/xxxxxx
+    # ( bigfollows . com )!
 
     print('Starting the bot...')
     bot.run()
 
+
 if __name__ == '__main__':
     args.setup()
     main()
-
