@@ -13,9 +13,12 @@ def _cache_and_get(index: int, index_file: str) -> str:
 
     return index
 
+
 def _get_random_index(bops: list[str]) -> int:
-    randi        = lambda b: randint(0, len(bops) - 1)
-    chosen_index = randi(bops)
+    def random_bop():
+        return randint(0, len(bops) - 1)
+
+    chosen_index = random_bop()
     index_file   = os.path.join('greeting', 'index.txt')
 
     if not os.path.isfile(index_file):
@@ -26,11 +29,12 @@ def _get_random_index(bops: list[str]) -> int:
         previous_index = f.read()
 
         while chosen_index == previous_index:
-            chosen_index = randi(bops)
+            chosen_index = random_bop()
             print(f'Previous bop: {bops[previous_index]}')
             print(f'Current bop: {bops[chosen_index]}')
 
         return _cache_and_get(chosen_index, index_file)
+
 
 _bops = (
     'beep bop',
@@ -42,7 +46,7 @@ _bops = (
     'BWAAHH STUTUTUTU',
 )
 
+
 def get_a_bop() -> str:
     global _bops
     return _bops[_get_random_index(_bops)]
-

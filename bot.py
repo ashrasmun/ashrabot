@@ -12,11 +12,11 @@ def main():
     config.load(args.bot_config)
 
     bot = commands.Bot(
-        irc_token=config.tmi_token,
-        client_id=config.client_id,
-        nick=config.bot_nick,
-        prefix=config.bot_prefix,
-        initial_channels=config.channel,
+        irc_token        = config.tmi_token,
+        client_id        = config.client_id,
+        nick             = config.bot_nick,
+        prefix           = config.bot_prefix,
+        initial_channels = config.channel,
     )
 
     @bot.event
