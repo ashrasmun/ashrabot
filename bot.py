@@ -5,12 +5,11 @@ from twitchio.ext import commands
 from details import config, args
 
 
-index = 0
-
-
 class AshraBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.mus_index      = 0
+        self.corvibot_index = 0
 
     async def event_ready(self):
         """Called once when the bot goes online."""
@@ -19,6 +18,18 @@ class AshraBot(commands.Bot):
 
         message = f'/me is online, {greeting.get_a_bop()}'
         await ws.send_privmsg(config.channel[0], message)
+
+    def _react_to_mus(self):
+        # Make sure the new message is unique
+        paren = '' if self.mus_index == 0 else f' ({self.mus_index})'
+        self.mus_index = self.mus_index + 1
+        return f'mus KEKW{paren}'
+
+    def _react_to_corvibot(self):
+        # Make sure the new message is unique
+        paren = '' if self.corvibot_index == 0 else f' ({self.corvibot_index})'
+        self.corvibot_index = self.corvibot_index + 1
+        return f'peepoLove{paren}'
 
     async def event_message(self, context):
         """Runs every time a message is sent in chat."""
@@ -29,18 +40,16 @@ class AshraBot(commands.Bot):
         if context.author.name.lower() == config.bot_nick.lower():
             return
 
+        # Handle commands with prefix
+        await self.handle_commands(message = context)
+
         content       = context.content.lower()
         split_content = content.split(' ')
 
-        # Make sure the new message is unique
-        global index
-        paren = '' if index == 0 else f' ({index})'
-        index = index + 1
-
         if 'mus' in split_content:
-            content = f'mus KEKW{paren}'
+            content = self._react_to_mus()
         elif 'corvibot' in split_content:
-            content = f'peepoLove{paren}'
+            content = self._react_to_corvibot()
         else:
             return
 
