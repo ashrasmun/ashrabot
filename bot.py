@@ -12,6 +12,12 @@ class AshraBot(commands.Bot):
         self.mus_index      = 0
         self.corvibot_index = 0
 
+    async def check(self, what: str):
+        """Debug method used to check various stuff"""
+        await channel.send('PepoG I need to check something...')
+        print(what)
+        await channel.send('MrDestructoid Boss, look at my console!...')
+
     # -------------------------------- Events ------------------------------- #
 
     async def event_ready(self):
@@ -34,19 +40,19 @@ class AshraBot(commands.Bot):
         self.corvibot_index = self.corvibot_index + 1
         return f'peepoLove{paren}'
 
-    async def event_message(self, context):
+    async def event_message(self, message):
         """Runs every time a message is sent in chat."""
         # TODO:
         # Reset the index when the 30s timer cools down.
 
         # Make sure the bot ignores itself and the streamer
-        if context.author.name.lower() == config.bot_nick.lower():
+        if message.author.name.lower() == config.bot_nick.lower():
             return
 
         # Handle commands with prefix
-        await self.handle_commands(message = context)
+        await self.handle_commands(message = message)
 
-        content       = context.content.lower()
+        content       = message.content.lower()
         split_content = content.split(' ')
 
         if 'mus' in split_content:
@@ -56,9 +62,9 @@ class AshraBot(commands.Bot):
         else:
             return
 
-        await context.channel.send(content)
+        await message.channel.send(content)
 
-    async def event_usernotice_subscription(self, context):
+    async def event_usernotice_subscription(self, metadata):
         """
         React to subscriptions.
 
@@ -72,7 +78,8 @@ class AshraBot(commands.Bot):
         ]
 
         chosen = thanks[random.randint(0, len(thanks))]
-        await context.channel.send(chosen)
+        await metadata.channel.send(chosen)
+        await check(dir(metadata))
 
     # ------------------------------ Commands ------------------------------- #
 
