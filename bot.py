@@ -96,6 +96,12 @@ class AshraBot(commands.Bot):
         reason = ' '.join(args) if args else 'your lurking'
         await context.send(f'Enjoy {reason}, {context.author.name} peepoLove')
 
+    @commands.command(name = "discord")
+    async def discord_command(self, context):
+        """Inform about discord server"""
+        await context.send('Please check the channel\'s description'
+                           f' {ctx.author.name} peepoHappy')
+
     @commands.command()
     async def hello(self, ctx):
         # Send a hello back!
