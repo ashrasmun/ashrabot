@@ -1,5 +1,6 @@
 import sys
 import greeting
+import random
 
 from twitchio.ext import commands
 from details import config, args
@@ -10,6 +11,8 @@ class AshraBot(commands.Bot):
         super().__init__(*args, **kwargs)
         self.mus_index      = 0
         self.corvibot_index = 0
+
+    # -------------------------------- Events ------------------------------- #
 
     async def event_ready(self):
         """Called once when the bot goes online."""
@@ -55,17 +58,23 @@ class AshraBot(commands.Bot):
 
         await context.channel.send(content)
 
-    async def _print_context(self, context):
-        print(dir(context))
-        print(context.color)
-        print(context.author)
-        print(context.command)
-        print(dir(context.command))
-        print(context.content)
-        print(context.kwargs)
-        print(context.message)
-        print(dir(context.message))
-        print(context.prefix)
+    async def event_usernotice_subscription(self, context):
+        """
+        React to subscriptions.
+
+        TODO: test it :)
+        """
+        thanks = [
+            'FeelsOkayMan 🍷, thanks kind Sir/Madamme!',
+            'HYPER yay, thanks!',
+            'Pog WHAT A MADLAD!',
+            'PeepoGlad I appreciate your help!'
+        ]
+
+        chosen = thanks[random.randint(0, len(thanks))]
+        await context.channel.send(chosen)
+
+    # ------------------------------ Commands ------------------------------- #
 
     @commands.command(name = "lurk")
     async def lurk_command(self, context):
