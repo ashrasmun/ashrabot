@@ -100,12 +100,12 @@ class AshraBot(commands.Bot):
     async def discord_command(self, context):
         """Inform about discord server"""
         await context.send('Please check the channel\'s description'
-                           f' {ctx.author.name} peepoHappy')
+                           f' {context.author.name} peepoHappy')
 
     @commands.command()
-    async def hello(self, ctx):
+    async def hello(self, context):
         # Send a hello back!
-        await ctx.send(f'Hello {ctx.author.name}!')
+        await context.send(f'Hello {context.author.name}!')
 
 
 def main():
