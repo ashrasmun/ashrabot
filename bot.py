@@ -1,6 +1,7 @@
 import sys
 import greeting
 import random
+import asyncio
 
 from twitchio.ext import commands
 from details import config, args
@@ -11,20 +12,23 @@ class AshraBot(commands.Bot):
         super().__init__(*args, **kwargs)
         self.mus_index      = 0
         self.corvibot_index = 0
+        self.channel        = None
 
     async def check(self, what: str):
         """Debug method used to check various stuff"""
-        await channel.send('PepoG I need to check something...')
+        assert self.channel, (
+            "Channel name should be cached upon bot going online"
+        )
+        await self.channel.send('PepoG I need to check something...')
         print(what)
-        await channel.send('MrDestructoid Boss, look at my console!...')
+        await self.channel.send('MrDestructoid Boss, look at my console!...')
 
     # -------------------------------- Events ------------------------------- #
 
     async def event_ready(self):
         """Called once when the bot goes online."""
         print(f'{config.bot_nick} is online!')
-        ws = self._ws  # allow bot to send messages during this event
-
+        ws      = self._ws  # allow bot to send messages during this event
         message = f'/me is online, {greeting.get_a_bop()}'
         await ws.send_privmsg(config.channel[0], message)
 
@@ -48,6 +52,9 @@ class AshraBot(commands.Bot):
         # Make sure the bot ignores itself and the streamer
         if message.author.name.lower() == config.bot_nick.lower():
             return
+
+        # Cache the channel
+        self.channel = message.channel
 
         # Handle commands with prefix
         await self.handle_commands(message = message)
@@ -79,7 +86,7 @@ class AshraBot(commands.Bot):
 
         chosen = thanks[random.randint(0, len(thanks))]
         await metadata.channel.send(chosen)
-        await check(dir(metadata))
+        # await self.check(dir(metadata))
 
     # ------------------------------ Commands ------------------------------- #
 
@@ -106,6 +113,11 @@ class AshraBot(commands.Bot):
     async def hello(self, context):
         # Send a hello back!
         await context.send(f'Hello {context.author.name}!')
+
+    @commands.command()
+    async def corvibot(self, context):
+        content = self._react_to_corvibot()
+        await context.send(content)
 
 
 def main():
