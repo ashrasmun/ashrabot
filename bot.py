@@ -9,6 +9,7 @@ import json
 
 from twitchio.ext import commands, pubsub
 from details import config, args
+from tts import blocked_words
 
 
 class AshraBot(commands.Bot):
