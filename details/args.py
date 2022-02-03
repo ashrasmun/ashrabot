@@ -32,6 +32,12 @@ def prepare_parser():
 
     # Optional
     optional.add_argument(
+        '-bw',
+        '--blocked_words',
+        help = 'json file containing blocked words',
+    )
+
+    optional.add_argument(
         '-d',
         '--debug',
         action = 'store_true',
