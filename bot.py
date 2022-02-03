@@ -9,7 +9,6 @@ import json
 
 from twitchio.ext import commands, pubsub
 from details import config, args
-from tts import blocked_words
 
 
 class AshraBot(commands.Bot):
@@ -39,6 +38,7 @@ class AshraBot(commands.Bot):
         """Called once when the bot goes online."""
         print(f'{config.bot_nick} is online!')
         self.channel = self.get_channel(self.channel_name)
+        assert self.channel, 'Noone\'s on the channel'
         message = f'/me is online, {greeting.get_a_bop()}'
         await self.channel.send(message)
 
