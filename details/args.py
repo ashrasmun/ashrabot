@@ -2,9 +2,10 @@ import os
 import argparse
 
 
-bot_config = None
-debug      = None
-_init      = False
+bot_config    = None
+blocked_words = None
+debug         = None
+_init         = False
 
 def prepare_parser():
     parser   = argparse.ArgumentParser(add_help = False)
@@ -59,10 +60,12 @@ def validate(args):
 
 def expose_arguments(args):
     global bot_config
+    global blocked_words
     global debug
 
-    bot_config = args.bot_config
-    debug      = args.debug
+    bot_config    = args.bot_config
+    blocked_words = args.blocked_words
+    debug         = args.debug
 
     return
 

@@ -5,19 +5,23 @@ import asyncio
 import subprocess
 import shlex
 import twitchio
+import json
 
 from twitchio.ext import commands, pubsub
 from details import config, args
-from tts import blocked_words
 
 
 class AshraBot(commands.Bot):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *_args, **_kwargs):
+        super().__init__(*_args, **_kwargs)
         self.mus_index      = 0
         self.corvibot_index = 0
-        self.channel_name   = kwargs.get('initial_channels')[0]
+        self.channel_name   = _kwargs.get('initial_channels')[0]
         assert self.channel_name
+
+        with open(args.blocked_words) as f:
+            loaded_json = json.load(f)
+            self.blocked_words = loaded_json.get('words')
 
     async def check(self, what: str):
         """Debug method used to check various stuff"""
@@ -138,7 +142,7 @@ class AshraBot(commands.Bot):
         encountered"""
 
         for word in content.split(' '):
-            for blocked in blocked_words.words:
+            for blocked in self.blocked_words:
                 if blocked.lower() in word.lower():
                     return 'No no, very naughty!'
 
