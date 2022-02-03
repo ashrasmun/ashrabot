@@ -2,9 +2,13 @@ import sys
 import greeting
 import random
 import asyncio
+import subprocess
+import shlex
+import twitchio
 
-from twitchio.ext import commands
+from twitchio.ext import commands, pubsub
 from details import config, args
+from tts import blocked_words
 
 
 class AshraBot(commands.Bot):
@@ -12,7 +16,8 @@ class AshraBot(commands.Bot):
         super().__init__(*args, **kwargs)
         self.mus_index      = 0
         self.corvibot_index = 0
-        self.channel        = None
+        self.channel_name   = kwargs.get('initial_channels')[0]
+        assert self.channel_name
 
     async def check(self, what: str):
         """Debug method used to check various stuff"""
@@ -28,9 +33,9 @@ class AshraBot(commands.Bot):
     async def event_ready(self):
         """Called once when the bot goes online."""
         print(f'{config.bot_nick} is online!')
-        ws      = self._ws  # allow bot to send messages during this event
+        self.channel = self.get_channel(self.channel_name)
         message = f'/me is online, {greeting.get_a_bop()}'
-        await ws.send_privmsg(config.channel[0], message)
+        await self.channel.send(message)
 
     def _react_to_mus(self):
         # Make sure the new message is unique
@@ -48,6 +53,10 @@ class AshraBot(commands.Bot):
         """Runs every time a message is sent in chat."""
         # TODO:
         # Reset the index when the 30s timer cools down.
+
+        # I have no idea why this can be a thing :(
+        if not message.author:
+            return
 
         # Make sure the bot ignores itself and the streamer
         if message.author.name.lower() == config.bot_nick.lower():
@@ -98,9 +107,14 @@ class AshraBot(commands.Bot):
             original case.
             2. Make the command case insensitive - if possible, of course.
         """
-        args = context.content.split(' ')
+        args = context.message.content.split(' ')
         args.pop(0)
         reason = ' '.join(args) if args else 'your lurking'
+
+        if reason == 'me':
+            await context.send(f'Enjoy m... wait, what? monkaS')
+            return
+
         await context.send(f'Enjoy {reason}, {context.author.name} peepoLove')
 
     @commands.command(name = "discord")
@@ -119,6 +133,32 @@ class AshraBot(commands.Bot):
         content = self._react_to_corvibot()
         await context.send(content)
 
+    def _sanitize_tts_content(self, content: str) -> str:
+        """Changes the message into a caution when a blocked word is
+        encountered"""
+
+        for word in content.split(' '):
+            for blocked in blocked_words.words:
+                if blocked.lower() in word.lower():
+                    return 'No no, very naughty!'
+
+        return content
+
+    def _construct_tts_command(self, raw_command: str) -> str:
+        """Accepts raw content from the twitch chat and returns a properly
+        formed PowerShell command"""
+        content = raw_command.split(' ')
+        content = ' '.join(content[1:])
+        content = self._sanitize_tts_content(content)
+        command = f'PowerShell -File tts/tts.ps1 -TextToSay "{content}"'
+        return shlex.split(command)
+
+    # For testing purposes
+    @commands.command(name = 'tts')
+    async def tts_command(self, context):
+        subprocess.run(self._construct_tts_command(context.message.content))
+        await context.send('Transcribulating PepoG ...')
+
 
 def main():
     print(f'I\'m running using: {sys.executable}')
@@ -126,7 +166,7 @@ def main():
     config.load(args.bot_config)
 
     bot = AshraBot(
-        irc_token        = config.tmi_token,
+        token            = config.tmi_token,
         client_id        = config.client_id,
         nick             = config.bot_nick,
         prefix           = config.bot_prefix,
