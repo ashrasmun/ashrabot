@@ -54,6 +54,22 @@ class AshraBot(commands.Bot):
         self.corvibot_index = self.corvibot_index + 1
         return f'peepoLove{paren}'
 
+    async def _handle_spam_bots(self, split_content):
+        pass #nothing yet
+        # await message.channel.send(f'/ban {message.author}')
+
+    async def _handle_silly_jokes(self, content):
+        split_content = content.split(' ')
+
+        if 'mus' in split_content:
+            content = self._react_to_mus()
+        elif 'corvibot' in split_content:
+            content = self._react_to_corvibot()
+        else:
+            return
+
+        await message.channel.send(content)
+
     async def event_message(self, message):
         """Runs every time a message is sent in chat."""
         # TODO:
@@ -73,17 +89,8 @@ class AshraBot(commands.Bot):
         # Handle commands with prefix
         await self.handle_commands(message = message)
 
-        content       = message.content.lower()
-        split_content = content.split(' ')
-
-        if 'mus' in split_content:
-            content = self._react_to_mus()
-        elif 'corvibot' in split_content:
-            content = self._react_to_corvibot()
-        else:
-            return
-
-        await message.channel.send(content)
+        self._handle_spam_bots(message.content)
+        self._handle_silly_jokes(message.content.lower())
 
     async def event_usernotice_subscription(self, metadata):
         """
@@ -163,7 +170,6 @@ class AshraBot(commands.Bot):
     async def tts_command(self, context):
         subprocess.run(self._construct_tts_command(context.message.content))
         await context.send('Transcribulating PepoG ...')
-
 
 def main():
     print(f'I\'m running using: {sys.executable}')
