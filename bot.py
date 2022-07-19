@@ -54,9 +54,20 @@ class AshraBot(commands.Bot):
         self.corvibot_index = self.corvibot_index + 1
         return f'peepoLove{paren}'
 
-    async def _handle_spam_bots(self, split_content):
+    async def _handle_spam_bots(self, message):
         pass #nothing yet
         # await message.channel.send(f'/ban {message.author}')
+
+    async def _handle_timeout(self, message):
+        if not self._contains_blocked_word(message.content):
+            return
+
+        username = message.author
+        # username = 'autobot_ryan'  # for testing :)
+        duration = 10  # in seconds
+        reason   = 'Please refrain from using such words - it\'s against TOS'
+        await message.channel.send(f'/timeout {username} {duration} {reason}')
+        print(f'{username} was timed out because they wrote: {message.content}')
 
     async def _handle_silly_jokes(self, content):
         split_content = content.split(' ')
@@ -89,8 +100,9 @@ class AshraBot(commands.Bot):
         # Handle commands with prefix
         await self.handle_commands(message = message)
 
-        self._handle_spam_bots(message.content)
-        self._handle_silly_jokes(message.content.lower())
+        await self._handle_spam_bots(message)
+        await self._handle_timeout(message)
+        await self._handle_silly_jokes(message.content.lower())
 
     async def event_usernotice_subscription(self, metadata):
         """
@@ -145,16 +157,21 @@ class AshraBot(commands.Bot):
         content = self._react_to_corvibot()
         await context.send(content)
 
+    def _contains_blocked_word(self, content: str) -> bool:
+        for word in content.split(' '):
+            for blocked in self.blocked_words:
+                if blocked.lower() in word.lower():
+                    return True
+
+        return False
+
     def _sanitize_tts_content(self, content: str) -> str:
         """Changes the message into a caution when a blocked word is
         encountered"""
 
-        for word in content.split(' '):
-            for blocked in self.blocked_words:
-                if blocked.lower() in word.lower():
-                    return 'No no, very naughty!'
-
-        return content
+        return 'No no, very naughty!' \
+               if self._contains_blocked_word(content) \
+               else content
 
     def _construct_tts_command(self, raw_command: str) -> str:
         """Accepts raw content from the twitch chat and returns a properly
