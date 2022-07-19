@@ -65,7 +65,9 @@ class AshraBot(commands.Bot):
         username = message.author
         # username = 'autobot_ryan'  # for testing :)
         duration = 10  # in seconds
-        reason   = 'Please refrain from using such words - it\'s against TOS'
+        reason   = 'Please refrain from using such words - it\'s against TOS.'\
+            ' This timeout is automatic. If you feel the word you used'\
+            ' shouldn\'t be blocked, tell the streamer about it. ~ashrabot'
         await message.channel.send(f'/timeout {username} {duration} {reason}')
         print(f'{username} was timed out because they wrote: {message.content}')
 
