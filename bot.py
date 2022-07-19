@@ -9,7 +9,7 @@ import json
 
 from twitchio.ext import commands, pubsub
 from details import config, args
-
+                               
 
 class AshraBot(commands.Bot):
     def __init__(self, *_args, **_kwargs):
@@ -71,8 +71,8 @@ class AshraBot(commands.Bot):
         await message.channel.send(f'/timeout {username} {duration} {reason}')
         print(f'{username} was timed out because they wrote: {message.content}')
 
-    async def _handle_silly_jokes(self, content):
-        split_content = content.split(' ')
+    async def _handle_silly_jokes(self, message):
+        split_content = message.content.lower().split(' ')
 
         if 'mus' in split_content:
             content = self._react_to_mus()
@@ -104,7 +104,7 @@ class AshraBot(commands.Bot):
 
         await self._handle_spam_bots(message)
         await self._handle_timeout(message)
-        await self._handle_silly_jokes(message.content.lower())
+        await self._handle_silly_jokes(message)
 
     async def event_usernotice_subscription(self, metadata):
         """
