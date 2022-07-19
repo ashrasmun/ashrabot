@@ -62,7 +62,7 @@ class AshraBot(commands.Bot):
         if not self._contains_blocked_word(message.content):
             return
 
-        username = message.author
+        username = message.author.name
         # username = 'autobot_ryan'  # for testing :)
         duration = 10  # in seconds
         reason   = 'Please refrain from using such words - it\'s against TOS.'\
