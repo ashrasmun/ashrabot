@@ -1,10 +1,10 @@
 import sys
 import greeting
 import random
-import asyncio
 import subprocess
 import shlex
 import twitchio
+import asyncio
 import json
 
 from twitchio.ext import commands, pubsub
@@ -16,8 +16,10 @@ class AshraBot(commands.Bot):
         super().__init__(*_args, **_kwargs)
         self.mus_index      = 0
         self.corvibot_index = 0
-        self.channel_name   = _kwargs.get('initial_channels')[0]
-        assert self.channel_name
+
+        if (c := _kwargs.get('initial_channels')) and len(c) > 0:
+            self.channel_name = c[0]
+            assert self.channel_name
 
         with open(args.blocked_words) as f:
             loaded_json = json.load(f)
@@ -55,6 +57,7 @@ class AshraBot(commands.Bot):
         return f'peepoLove{paren}'
 
     async def _handle_spam_bots(self, message):
+        print(message)
         pass #nothing yet
         # await message.channel.send(f'/ban {message.author}')
 
@@ -93,8 +96,11 @@ class AshraBot(commands.Bot):
             return
 
         # Make sure the bot ignores itself and the streamer
-        if message.author.name.lower() == config.bot_nick.lower():
-            return
+        if type(message.author.name) is str:
+            name = message.author.name
+
+            if name.lower() == config.bot_nick.lower():
+                return
 
         # Cache the channel
         self.channel = message.channel
@@ -175,7 +181,7 @@ class AshraBot(commands.Bot):
                if self._contains_blocked_word(content) \
                else content
 
-    def _construct_tts_command(self, raw_command: str) -> str:
+    def _construct_tts_command(self, raw_command: str) -> list[str]:
         """Accepts raw content from the twitch chat and returns a properly
         formed PowerShell command"""
         content = raw_command.split(' ')
@@ -190,28 +196,34 @@ class AshraBot(commands.Bot):
         subprocess.run(self._construct_tts_command(context.message.content))
         await context.send('Transcribulating PepoG ...')
 
-def main():
-    print(f'I\'m running using: {sys.executable}')
-    print('Reading configuration...')
-    config.load(args.bot_config)
 
-    bot = AshraBot(
-        token            = config.tmi_token,
-        client_id        = config.client_id,
-        nick             = config.bot_nick,
-        prefix           = config.bot_prefix,
-        initial_channels = config.channel,
-    )
+args.setup()
+print(f'I\'m running using: {sys.executable}')
+print('Reading configuration...')
+config.load(args.bot_config)
 
-    # TODO
-    # Add command to ban bots:
-    # Wanna become famous? Buy followers, primes and viewers on cutt.ly/xxxxxx
-    # ( bigfollows . com )!
+bot = AshraBot(
+    token            = config.tmi_token,
+    client_id        = config.client_id,
+    nick             = config.bot_nick,
+    prefix           = config.bot_prefix,
+    initial_channels = config.channel,
+)
 
-    print('Starting the bot...')
-    bot.run()
+bot.pubsub = pubsub.PubSubPool(bot)
 
+@bot.event()
+async def event_pubsub_channel_points(event: pubsub.PubSubChannelPointsMessage):
+    print('does this work?')
+    print(dir(event))
 
-if __name__ == '__main__':
-    args.setup()
-    main()
+@bot.event()
+async def event_ready():
+    topics = [
+        pubsub.channel_points(config.user_token)[config.user_id]
+    ]
+    await bot.pubsub.subscribe_topics(topics)
+
+print('Starting the bot...')
+bot.run()
+
