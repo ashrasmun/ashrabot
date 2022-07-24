@@ -3,11 +3,9 @@ import greeting
 import random
 import subprocess
 import shlex
-import twitchio
-import asyncio
 import json
 
-from twitchio.ext import commands, pubsub
+from twitchio.ext import commands, pubsub, sounds
 from details import config, args
                                
 
@@ -16,6 +14,7 @@ class AshraBot(commands.Bot):
         super().__init__(*_args, **_kwargs)
         self.mus_index      = 0
         self.corvibot_index = 0
+        self.player = sounds.AudioPlayer(callback = self.player_done)
 
         if (c := _kwargs.get('initial_channels')) and len(c) > 0:
             self.channel_name = c[0]
@@ -24,6 +23,9 @@ class AshraBot(commands.Bot):
         with open(args.blocked_words) as f:
             loaded_json = json.load(f)
             self.blocked_words = loaded_json.get('words')
+
+    async def player_done(self):
+        pass
 
     async def check(self, what: str):
         """Debug method used to check various stuff"""
@@ -214,8 +216,11 @@ bot.pubsub = pubsub.PubSubPool(bot)
 
 @bot.event()
 async def event_pubsub_channel_points(event: pubsub.PubSubChannelPointsMessage):
-    print('does this work?')
-    print(dir(event))
+    if event.reward.title == "Grzegorz":
+        bot.player.play(
+            sounds.Sound(source = r'f:\Media\twitch\grzegorz\grzegorz.mp3')
+        )
+        return
 
 @bot.event()
 async def event_ready():
