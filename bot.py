@@ -4,10 +4,11 @@ import random
 import subprocess
 import shlex
 import json
+import re
 
 from twitchio.ext import commands, pubsub, sounds
 from details import config, args
-                               
+
 
 class AshraBot(commands.Bot):
     def __init__(self, *_args, **_kwargs):
@@ -23,6 +24,10 @@ class AshraBot(commands.Bot):
         with open(args.blocked_words) as f:
             loaded_json = json.load(f)
             self.blocked_words = loaded_json.get('words')
+
+        self.bannable_phrases = [
+            re.compile('wanna become famous. buy viewers. followers and primes.*')
+        ]
 
     async def player_done(self):
         pass
@@ -59,9 +64,12 @@ class AshraBot(commands.Bot):
         return f'peepoLove{paren}'
 
     async def _handle_spam_bots(self, message):
-        print(message)
-        pass #nothing yet
-        # await message.channel.send(f'/ban {message.author}')
+        content = message.content.lower()
+
+        for phrase in self.bannable_phrases:
+            if phrase.search(content):
+                author = message.author.name
+                await message.channel.send(f"@ashrasmun Boss, something's sus here ConcernFroge ({author})")
 
     async def _handle_timeout(self, message):
         if not self._contains_blocked_word(message.content):
