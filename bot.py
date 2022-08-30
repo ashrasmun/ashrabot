@@ -247,9 +247,15 @@ class AshraBot(commands.Bot):
         user_emote = words[1]
         user_count = words[2]
 
-        count = int(user_count) if user_count.isdigit() else 1
-        count = count if count > 0 else 1
-        text  = user_emote + ' '
+        count          = int(user_count) if user_count.isdigit() else 1
+        count          = count if count > 0 else 1
+        maximum_height = 4
+
+        if count > maximum_height:
+            await context.send(f'Forget about it WTFFF (maximum height is {maximum_height})')
+            return
+
+        text = user_emote + ' '
 
         counter   = 1
         increment = 1
