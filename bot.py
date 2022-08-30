@@ -26,7 +26,8 @@ class AshraBot(commands.Bot):
             self.blocked_words = loaded_json.get('words')
 
         self.bannable_phrases = [
-            re.compile('wanna become famous. buy viewers. followers and primes.*')
+            re.compile('wanna become famous. buy viewers. followers and primes.*'),
+            re.compile('Wanna become famous. Buy followers. primes and viewers on yourfollowz. com.*'),
         ]
 
     async def player_done(self):
@@ -87,10 +88,19 @@ class AshraBot(commands.Bot):
     async def _handle_silly_jokes(self, message):
         split_content = message.content.lower().split(' ')
 
+        def has_co(words: list[str]):
+            for word in words:
+                if 'co?' in word:
+                    return True
+
+            return False
+
         if 'mus' in split_content:
             content = self._react_to_mus()
         elif 'corvibot' in split_content:
             content = self._react_to_corvibot()
+        elif has_co(split_content):
+            content = 'wiaderko 🤭'
         else:
             return
 
@@ -200,12 +210,56 @@ class AshraBot(commands.Bot):
         command = f'PowerShell -File tts/tts.ps1 -TextToSay "{content}"'
         return shlex.split(command)
 
-    # For testing purposes
     @commands.command(name = 'tts')
     async def tts_command(self, context):
         subprocess.run(self._construct_tts_command(context.message.content))
         await context.send('Transcribulating PepoG ...')
 
+    @commands.command(name = 'beach_mouse', aliases = ['beach', 'mouse'])
+    async def beach_mouse_command(self, context):
+        beach_mouse = 'beach, mouse, beach beach mouse, pxichxijchpxichxijchpxichxijchpxichxijch beach, mouse, beach beach mouse, pxichxijchpxichxijchpxichxijchpxichxijch'
+        await context.send('That\'s my jam EZ')
+        subprocess.run(self._construct_tts_command(beach_mouse))
+
+    @commands.command(name = 'commands')
+    async def display_command(self, context):
+        available = [
+            'lurk',
+            'discord',
+            'hello',
+            'corvibot',
+            'tts',
+            'beach_mouse',
+        ]
+        formatted = ','.join(available)
+        await context.send(f'Available commands are {formatted}')
+
+    @commands.command(name = 'emoteamid')
+    async def stompamid_command(self, context):
+        words = context.message.content.split()
+
+        if len(words) < 3:
+            await context.send('Hey! You need to specify name of the emote to '
+                    'display and the emoteamid\'s height, for example: '
+                    '!emoteamid PeepoGlad 4')
+            return
+
+        user_emote = words[1]
+        user_count = words[2]
+
+        count = int(user_count) if user_count.isdigit() else 1
+        count = count if count > 0 else 1
+        text  = user_emote + ' '
+
+        counter   = 1
+        increment = 1
+
+        for _ in range(2 * count - 1):
+            await context.send(text * counter)
+            counter = counter + increment
+
+            if counter == count:
+                increment = -1
 
 args.setup()
 print(f'I\'m running using: {sys.executable}')
