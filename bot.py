@@ -7,6 +7,7 @@ import json
 import re
 import os
 
+from datetime import datetime
 from twitchio.ext import commands, pubsub, sounds
 from details import config, args, handlers
 
@@ -75,8 +76,6 @@ class AshraBot(commands.Bot):
         content = message.content.lower()
 
         for phrase in self.bannable_phrases:
-            print(f'checking for {phrase} in {content}')
-
             if phrase.search(content):
                 author = message.author.name
                 print(f"Bot detected: {author}")
@@ -135,7 +134,22 @@ class AshraBot(commands.Bot):
         # Cache the channel
         self.channel = message.channel
 
-        # Handle commands with prefix
+        # TODO: Separate script cannot interact with Twitch, so after sending
+        # data to a separate process, we'll need to wait until the data is
+        # properly prepared by the external process and then it can be read by
+        # the actual bot.
+        #
+        # # Handle commands with prefix
+        # if message:
+        #     words = message.content.split()
+        #     is_command = len(words) > 1 and words[0].startswith("!")
+
+        #     if is_command:
+        #         print("is_command")
+        #         cmd = f'py details/handlers.py "{message.content}"'
+        #         print(cmd)
+        #         subprocess.run(cmd)
+
         await self.handle_commands(message = message)
 
         await self._handle_spam_bots(message)
@@ -308,6 +322,47 @@ class AshraBot(commands.Bot):
             "'!valheim mods'"
         )
 
+    async def _create_quote(self, words: list[str]) -> str:
+        if not words:
+            return ""
+
+        quote = words[1:] if len(words) > 1 else ""
+
+        if not quote:
+            return ""
+
+        pres_quote = ' '.join(quote)
+        today = datetime.today().strftime("%y-%m-%d %H:%M:%S")
+        return f'"{pres_quote}" ~ashra {today}'
+
+    @commands.command(name = 'addquote')
+    async def addquote_command(self, context):
+        words = context.message.content.split()
+        quote = self._create_quote(words)
+
+        quotes_file = 'quotes.txt'
+
+        # Ensure the file exists
+        if not os.path.isfile(quotes_file):
+            with open(quotes_file, 'w'):
+                pass
+
+        # TODO:
+        # 0. clean up the quote from any non-ascii character or simply reject
+        # the quote
+        # 1. read file and see how many quotes are already there
+        # 2. use the last number and append the command
+
+        #with open(quotes_file, 'r'):
+
+
+    @commands.command(name = 'quote')
+    async def quote_command(self, context):
+        # TODO:
+        # read the quote based on number - maybe fuzzy search?
+        # print help otherwise
+        pass
+
     @commands.command(name = 'commands')
     async def display_command(self, context):
         available = [
@@ -317,7 +372,8 @@ class AshraBot(commands.Bot):
             'corvibot',
             'tts',
             'beach_mouse',
-            'valheim'
+            'valheim',
+            'addquote'
         ]
         formatted = ','.join(available)
         await context.send(f'Available commands are {formatted}')
@@ -353,5 +409,7 @@ async def event_ready():
     await bot.pubsub.subscribe_topics(topics)
 
 print('Starting the bot...')
+# TODO: ensure that working directory is the one in which the script lives for
+# the duration of the bot's lifetime
 bot.run()
 

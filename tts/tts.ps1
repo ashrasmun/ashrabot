@@ -5,7 +5,9 @@ Param(
 
 Function Main {
     Add-Type -AssemblyName System.Speech
-    (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak($TextToSay)
+    $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
+    $synth.Volume = 100
+    $synth.Speak($TextToSay)
 }
 
 Main
