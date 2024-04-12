@@ -5,9 +5,10 @@ import subprocess
 import shlex
 import json
 import re
+import os
 
 from twitchio.ext import commands, pubsub, sounds
-from details import config, args
+from details import config, args, handlers
 
 
 class AshraBot(commands.Bot):
@@ -25,10 +26,16 @@ class AshraBot(commands.Bot):
             loaded_json = json.load(f)
             self.blocked_words = loaded_json.get('words')
 
-        self.bannable_phrases = [
-            re.compile('wanna become famous. buy viewers. followers and primes.*'),
-            re.compile('Wanna become famous. Buy followers. primes and viewers on yourfollowz. com.*'),
+        bannable_phrases_raw = [
+            'wanna become famous. buy viewers. followers and primes.*',
+            'Wanna become famous. Buy followers. primes and viewers on yourfollowz. com.*',
+            '.*I want to offer promotion of your channel.*',
         ]
+        self.bannable_phrases = [re.compile(p, re.I) for p in bannable_phrases_raw]
+
+    async def send(self, context, message: str):
+        print(message)
+        await context.send(message)
 
     async def player_done(self):
         pass
@@ -68,8 +75,11 @@ class AshraBot(commands.Bot):
         content = message.content.lower()
 
         for phrase in self.bannable_phrases:
+            print(f'checking for {phrase} in {content}')
+
             if phrase.search(content):
                 author = message.author.name
+                print(f"Bot detected: {author}")
                 await message.channel.send(f"@ashrasmun Boss, something's sus here ConcernFroge ({author})")
 
     async def _handle_timeout(self, message):
@@ -115,7 +125,7 @@ class AshraBot(commands.Bot):
         if not message.author:
             return
 
-        # Make sure the bot ignores itself and the streamer
+        # Make sure the bot ignores itself
         if type(message.author.name) is str:
             name = message.author.name
 
@@ -221,19 +231,6 @@ class AshraBot(commands.Bot):
         await context.send('That\'s my jam EZ')
         subprocess.run(self._construct_tts_command(beach_mouse))
 
-    @commands.command(name = 'commands')
-    async def display_command(self, context):
-        available = [
-            'lurk',
-            'discord',
-            'hello',
-            'corvibot',
-            'tts',
-            'beach_mouse',
-        ]
-        formatted = ','.join(available)
-        await context.send(f'Available commands are {formatted}')
-
     @commands.command(name = 'emoteamid')
     async def stompamid_command(self, context):
         words = context.message.content.split()
@@ -266,6 +263,64 @@ class AshraBot(commands.Bot):
 
             if counter == count:
                 increment = -1
+
+    @commands.command(name = 'valheim')
+    async def valheim_command(self, context):
+        options = ('mods', 'hc',)
+        words = context.message.content.split()
+
+        def matches(command_name: str):
+            return words and len(words) > 1 and words[1] == command_name
+
+        if matches(options[0]):
+            p = r"C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins"
+            plugins = [d.name for d in os.scandir(p) if d.is_dir()]
+
+            def trim(name: str):
+                match = re.search(r"[-\d]", name)
+                return name[:match.start()] if match else name
+
+            plugins = [trim(p) for p in plugins]
+            rationale = (
+                'The rationale is to make the game less tedious in some areas'
+                ' and to make it slightly more exciting by introducing more'
+                ' difficult monsters and fancy magic items'
+            )
+            num_of_plugs = len(plugins) + 1
+            repr_plugs = ', '.join(plugins)
+
+            await context.send(
+                f'Currently there are {num_of_plugs} mods used, which are: '
+                f'{repr_plugs} and BepInEx'
+            )
+            await self.send(context, rationale)
+            return
+
+        if matches(options[1]):
+            await self.send(context, 'Current world uses these options:')
+            await self.send(context, 'https://i.imgur.com/AKuGq7k.png')
+            await self.send(context, 'Death = new world')
+            return
+
+        presented_options = ', '.join(options)
+        await self.send(context,
+            f"Available options are: {presented_options}. For example "
+            "'!valheim mods'"
+        )
+
+    @commands.command(name = 'commands')
+    async def display_command(self, context):
+        available = [
+            'lurk',
+            'discord',
+            'hello',
+            'corvibot',
+            'tts',
+            'beach_mouse',
+            'valheim'
+        ]
+        formatted = ','.join(available)
+        await context.send(f'Available commands are {formatted}')
 
 args.setup()
 print(f'I\'m running using: {sys.executable}')
