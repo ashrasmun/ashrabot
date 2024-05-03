@@ -1,4 +1,4 @@
-call py -3 pip install virtualenv
+call py -3 -m pip install virtualenv
 call py -3 -m virtualenv env
 call env\Scripts\activate
 call python -m pip install --upgrade pip

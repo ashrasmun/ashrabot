@@ -1,3 +1,5 @@
+print("Initializing...")
+
 import sys
 import greeting
 import random
@@ -378,38 +380,63 @@ class AshraBot(commands.Bot):
         formatted = ','.join(available)
         await context.send(f'Available commands are {formatted}')
 
-args.setup()
-print(f'I\'m running using: {sys.executable}')
-print('Reading configuration...')
-config.load(args.bot_config)
+    @commands.command(name = 'help')
+    async def help_command(self, context):
+        options = ('tts', 'todo the rest :)',)
+        words = context.message.content.split()
 
-bot = AshraBot(
-    token            = config.tmi_token,
-    client_id        = config.client_id,
-    nick             = config.bot_nick,
-    prefix           = config.bot_prefix,
-    initial_channels = config.channel,
-)
+        def matches(command_name: str):
+            return words and len(words) > 1 and words[1] == command_name
 
-bot.pubsub = pubsub.PubSubPool(bot)
+        if matches(options[0]):
+            message = (
+                "You can specify a simple tts message using the '!tts' command,"
+                "like: '!tts That streamer slaps' or you can send a TTS message "
+                "using channel points. That second method allows you to use "
+                "custom voices thanks to TTSLabs. For more info check: "
+                "https://ttslabs.ai/user/ashrasmun"
+            )
+            await self.send(context, message)
+            return
 
-@bot.event()
-async def event_pubsub_channel_points(event: pubsub.PubSubChannelPointsMessage):
-    if event.reward.title == "Grzegorz":
-        bot.player.play(
-            sounds.Sound(source = r'f:\Media\twitch\grzegorz\grzegorz.mp3')
+        # Fallback case
+        message = (
+            "For available commands, type '!commands'. For help related to"
+            " given command, type '!help <command>' e.g. '!help tts'"
         )
-        return
+        await self.send(context, message)
 
-@bot.event()
-async def event_ready():
-    topics = [
-        pubsub.channel_points(config.user_token)[config.user_id]
-    ]
-    await bot.pubsub.subscribe_topics(topics)
+if __name__=="__main__":
+    args.setup()
+    print(f'I\'m running using: {sys.executable}')
+    print('Reading configuration...')
+    config.load(args.bot_config)
 
-print('Starting the bot...')
-# TODO: ensure that working directory is the one in which the script lives for
-# the duration of the bot's lifetime
-bot.run()
+    bot = AshraBot(
+        token            = config.bot_access_token,
+        prefix           = config.bot_prefix,
+        initial_channels = config.channel,
+    )
+
+    bot.pubsub = pubsub.PubSubPool(bot)
+
+    @bot.event()
+    async def event_pubsub_channel_points(event: pubsub.PubSubChannelPointsMessage):
+        if event.reward.title == "Grzegorz":
+            bot.player.play(
+                sounds.Sound(source = r'f:\Media\twitch\grzegorz\grzegorz.mp3')
+            )
+            return
+
+    @bot.event()
+    async def event_ready():
+        topics = [
+            pubsub.channel_points(config.bot_access_token)[config.bot_id]
+        ]
+        await bot.pubsub.subscribe_topics(topics)
+
+    print('Starting the bot...')
+    # TODO: ensure that working directory is the one in which the script lives for
+    # the duration of the bot's lifetime
+    bot.run()
 

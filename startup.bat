@@ -4,7 +4,7 @@ setlocal
 if exist %~dp0env\ (
     call %~dp0env\Scripts\activate
 ) else (
-    call venv_setup.py
+    call venv_setup.bat
 )
 
-call python bot.py --bot_config c:\home\dev\ashrabot_config.json --blocked_words c:\home\dev\blocked.json
+call python bot.py --bot_config %~dp0config.json --blocked_words %~dp0blocked.json
